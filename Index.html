@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis 5ta Circunscripción | Seminario CNV</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+    <style>
+        :root {
+            --color-primary: #D9002C; /* Rojo PRI */
+            --color-dark: #404041;
+            --color-green: #28a745;
+            --color-red: #dc3545;
+            --color-light-gray: #f0f2f5;
+            --color-gray: #e9ecef;
+            --color-text: #343a40;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius: 12px;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--color-light-gray);
+            color: var(--color-text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        .header-logos img {
+            height: 65px; /* Logos más grandes */
+            margin: 0 15px;
+        }
+        .header-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+        .header-title h1 { color: var(--color-dark); font-weight: 700; margin: 0; }
+        .header-title p { color: var(--color-primary); font-size: 1.2em; font-weight: 500; margin: 5px 0 0 0; }
+        
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            background: #fff;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            align-items: center;
+        }
+        .filters label { font-weight: 500; }
+        .filters select {
+            padding: 10px;
+            border: 1px solid var(--color-gray);
+            border-radius: 8px;
+            width: 250px;
+            font-size: 1em;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .kpi-card {
+            background: #fff; padding: 25px; border-radius: var(--border-radius);
+            box-shadow: var(--shadow); border-left: 5px solid;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .kpi-card.green { border-color: var(--color-green); }
+        .kpi-card.red { border-color: var(--color-red); }
+        .kpi-card .value { font-size: 2.2em; font-weight: 700; margin: 0; }
+        .kpi-card.green .value { color: var(--color-green); }
+        .kpi-card.red .value { color: var(--color-red); }
+        .kpi-card .label { font-size: 1em; color: var(--color-dark); margin: 0; }
+        .kpi-card .icon { width: 48px; height: 48px; }
+        
+        .chart-container, .state-card {
+            background: #fff; padding: 30px; border-radius: var(--border-radius);
+            box-shadow: var(--shadow); margin-bottom: 40px;
+        }
+        h2 { color: var(--color-dark); border-bottom: 3px solid var(--color-gray); padding-bottom: 10px; margin-top: 0; margin-bottom: 30px; }
+        h3 { color: var(--color-primary); font-size: 1.8em; margin: 0 0 20px 0; }
+        h4 { color: var(--color-dark); font-size: 1.2em; margin-bottom: 10px; }
+        
+        .state-content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .recommendations ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .recommendations li {
+            position: relative;
+            padding: 10px 10px 10px 25px;
+            margin-bottom: 8px;
+            background-color: var(--color-light-gray);
+            border-left: 4px solid var(--color-primary);
+            border-radius: 4px;
+        }
+        .recommendations li strong {
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+        .recommendations li::before {
+            content: '💡';
+            position: absolute;
+            left: 8px;
+            top: 12px;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-logos">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg" alt="Logo Genérico" title="Logo Genérico">
+            </div>
+            <div class="header-title">
+                <h1>Análisis 5ta Circunscripción</h1>
+                <p>Seminario de Profesionalización CNV</p>
+            </div>
+            <div class="header-logos">
+                <img src="https://pri.org.mx/ElPartidoDeMexico/assets/images/Logo2025PRI_Mesadetrabajo1.png" alt="Logo PRI 2025">
+            </div>
+        </header>
+
+        <div class="filters">
+            <label for="moduleFilter">Filtrar por Módulo:</label>
+            <select id="moduleFilter">
+                <option value="all">Todos los Módulos (Promedio)</option>
+                <option value="M1">Módulo 1</option>
+                <option value="M2">Módulo 2</option>
+                <option value="M3">Módulo 3</option>
+            </select>
+        </div>
+
+        <section class="kpi-grid">
+            <div id="kpi-asistencia" class="kpi-card"></div>
+            <div id="kpi-retencion" class="kpi-card"></div>
+            <div id="kpi-crecimiento" class="kpi-card"></div>
+        </section>
+
+        <section id="comparison-section" class="chart-container">
+            <h2>Comparativa de Asistencia por Estado</h2>
+            <canvas id="statesComparisonChart"></canvas>
+        </section>
+
+        <section id="state-details">
+            <div class="state-card">
+                <h3>Colima</h3>
+                <div class="state-content-grid">
+                    <div class="chart-area">
+                         <h4>Evolución de Asistencia</h4>
+                         <canvas id="colimaChart"></canvas>
+                    </div>
+                    <div class="recommendations">
+                        <h4>Recomendaciones por Módulo</h4>
+                        <ul>
+                            <li><strong>Módulo 1:</strong> Investigar la baja asistencia inicial de Propietarios (33.33%) y capitalizar el compromiso de los Suplentes (66.67%) para futuras convocatorias.</li>
+                            <li><strong>Módulo 2:</strong> Reconocer la mejora de Propietarios, pero contactar a los Suplentes para entender la causa de su disminución y reengancharlos al seminario.</li>
+                            <li><strong>Módulo 3:</strong> ¡Acción Urgente! Con una asistencia del 33.33% en ambas categorías, es crítico realizar un seguimiento personalizado para identificar barreras y prevenir el abandono total.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-card">
+                <h3>Estado de México</h3>
+                <div class="state-content-grid">
+                     <div class="chart-area">
+                         <h4>Evolución de Asistencia</h4>
+                         <canvas id="edomexChart"></canvas>
+                    </div>
+                    <div class="recommendations">
+                        <h4>Recomendaciones por Módulo</h4>
+                        <ul>
+                            <li><strong>Módulo 1 y 2:</strong> Mantener la estrategia de comunicación actual por su alta efectividad. Utilizar a esta delegación como caso de éxito y mentores para otros estados.</li>
+                            <li><strong>Módulo 3:</strong> Felicitar formalmente a la delegación por su excepcional compromiso (98.8% P, 100% S). Realizar encuestas de satisfacción para identificar y replicar las claves de su éxito.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-card">
+                <h3>Michoacán</h3>
+                <div class="state-content-grid">
+                     <div class="chart-area">
+                         <h4>Evolución de Asistencia</h4>
+                         <canvas id="michoacanChart"></canvas>
+                    </div>
+                    <div class="recommendations">
+                        <h4>Recomendaciones por Módulo</h4>
+                        <ul>
+                            <li><strong>Módulo 1:</strong> Reforzar la convocatoria para los Suplentes (45.45%), comunicando la importancia de su rol y participación desde el inicio del programa.</li>
+                            <li><strong>Módulo 2:</strong> La mejora en ambas categorías es positiva. Identificar qué cambió entre M1 y M2 para motivar a más participantes y reforzar esa táctica.</li>
+                             <li><strong>Módulo 3:</strong> El enfoque debe ser la retención de Suplentes. Es clave revisar las listas de inasistencias recurrentes para un seguimiento directo y personalizado.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="state-card">
+                <h3>Querétaro</h3>
+                <div class="state-content-grid">
+                     <div class="chart-area">
+                         <h4>Evolución de Asistencia</h4>
+                         <canvas id="queretaroChart"></canvas>
+                    </div>
+                    <div class="recommendations">
+                        <h4>Recomendaciones por Módulo</h4>
+                        <ul>
+                            <li><strong>Módulo 1:</strong> Analizar la causa raíz de la bajísima asistencia inicial (15%) para evitar que se repita en futuros seminarios. Es un punto crítico de mejora.</li>
+                            <li><strong>Módulo 2:</strong> Identificar y replicar el factor que causó el notable incremento. Felicitar al grupo por el cambio de rumbo y motivar a los Suplentes a igualar el compromiso.</li>
+                            <li><strong>Módulo 3:</strong> El impulso es excelente. El reto ahora es la consistencia. Mantener un canal de comunicación abierto para recibir retroalimentación y asegurar que el interés no decaiga.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+<script>
+// Data Store (igual que en la versión anterior)
+const seminarData = { Global: { asistenciaPromedio: 75.70, retencion: 120.48, crecimiento: 8.07 }, Colima: { promedio: 50.00, retencion: 126.5, modulos: { M1: { P: 33.33, S: 66.67 }, M2: { P: 66.67, S: 33.33 }, M3: { P: 33.33, S: 33.33 } } }, Edomex: { promedio: 87.20, retencion: 130.14, modulos: { M1: { P: 92.68, S: 80.49 }, M2: { P: 90.24, S: 85.37 }, M3: { P: 98.8, S: 100 } } }, Michoacan: { promedio: 65.91, retencion: 111.9, modulos: { M1: { P: 72.73, S: 45.45 }, M2: { P: 81.82, S: 63.64 }, M3: { P: 75, S: 66.67 } } }, Queretaro: { promedio: 36.08, retencion: 132.62, modulos: { M1: { P: 15.00, S: 15.00 }, M2: { P: 71.43, S: 42.86 }, M3: { P: 71.43, S: 71.43 } } } };
+const icons = { up: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.0037 9.41421L7.39712 18.0208L5.98291 16.6066L14.5895 8H7.00373V6H18.0037V17H16.0037V9.41421Z"></path></svg>`, down: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.0037 14.5858L7.39712 5.9792L5.98291 7.39341L14.5895 16H7.00373V18H18.0037V7H16.0037V14.5858Z"></path></svg>`, time: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C17.52 2 22 6.48 22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2ZM12 4C7.58 4 4 7.58 4 12C4 16.42 7.58 20 12 20C16.42 20 20 16.42 20 12C20 7.58 16.42 4 12 4ZM12.5 7V12.25L16.5 14.33L15.74 15.45L11 13V7H12.5Z"></path></svg>`, group: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14 14.252V16.252H16.5V18.252H14V20.252H12V18.252H9.5V16.252H12V14.252H14ZM18.441 12.5C18.791 11.99 19 11.39 19 10.752C19 8.712 17.542 7.062 15.681 6.552C15.901 6.012 16 5.432 16 4.812C16 2.982 14.491 1.502 12.631 1.502C10.771 1.502 9.25 2.982 9.25 4.812C9.25 5.432 9.34 6.002 9.561 6.552C7.701 7.062 6.25 8.712 6.25 10.752C6.25 11.392 6.46 11.992 6.81 12.502C5.12 13.432 4 15.082 4 17.002V20.502H10V18.502H6V17.002C6 15.732 6.83 14.622 8 14.072V14.072C8.71 13.622 9.25 12.892 9.25 12.002V11.502C9.25 11.162 9.33 10.832 9.47 10.532C9.64 10.162 9.9 9.852 10.23 9.612C10.53 9.412 10.88 9.252 11.25 9.142V9.142C11.63 9.042 12.02 8.992 12.41 8.992C13.2 8.992 13.95 9.202 14.56 9.612C14.9 9.852 15.15 10.162 15.32 10.532C15.46 10.832 15.54 11.162 15.54 11.502V12.002C15.54 12.892 16.08 13.622 16.79 14.072C17.96 14.622 18.79 15.732 18.79 17.002V18.502H20V17.002C20 15.082 18.67 13.432 17.18 12.502H17.18L18.441 12.5Z"></path></svg>` };
+
+document.addEventListener('DOMContentLoaded', function () {
+    const moduleFilter = document.getElementById('moduleFilter');
+
+    Chart.register(ChartDataLabels);
+    Chart.defaults.set('plugins.datalabels', {
+        color: '#ffffff',
+        font: { weight: 'bold' },
+        formatter: (value) => value > 0 ? value.toFixed(1) + '%' : null
+    });
+    
+    let charts = {};
+
+    function updateDashboard() {
+        const selectedModule = moduleFilter.value;
+        updateKPIs(selectedModule);
+        updateAllCharts(selectedModule);
+    }
+    
+    function updateKPIs(module) {
+        // Esta función podría ser más compleja si los KPIs necesitaran recalcularse por módulo.
+        // Por simplicidad, se mantienen los globales.
+        const data = seminarData.Global;
+        const kpiAsistencia = document.getElementById('kpi-asistencia');
+        const kpiRetencion = document.getElementById('kpi-retencion');
+        const kpiCrecimiento = document.getElementById('kpi-crecimiento');
+        
+        kpiAsistencia.className = `kpi-card ${data.asistenciaPromedio >= 70 ? 'green' : 'red'}`;
+        kpiAsistencia.innerHTML = `<div><p class="value">${data.asistenciaPromedio.toFixed(2)}%</p><p class="label">Asistencia Global</p></div> ${icons.group}`;
+        
+        kpiRetencion.className = `kpi-card ${data.retencion >= 120 ? 'green' : 'red'}`;
+        kpiRetencion.innerHTML = `<div><p class="value">${data.retencion.toFixed(2)} min</p><p class="label">Retención Global (M2)</p></div> ${icons.time}`;
+        
+        kpiCrecimiento.className = `kpi-card ${data.crecimiento > 0 ? 'green' : 'red'}`;
+        kpiCrecimiento.innerHTML = `<div><p class="value">+${data.crecimiento.toFixed(2)}%</p><p class="label">Crecimiento (M1-M2)</p></div> ${icons.up}`;
+    }
+
+    function updateAllCharts(module) {
+        // Actualizar Gráfico Comparativo
+        let compData, compLabel;
+        if (module === 'all') {
+            compLabel = 'Asistencia Promedio Combinada (%)';
+            compData = Object.values(seminarData).slice(1).map(s => s.promedio);
+        } else {
+            compLabel = `Asistencia ${module} (%)`;
+            compData = Object.values(seminarData).slice(1).map(s => (s.modulos[module].P + s.modulos[module].S) / 2);
+        }
+        charts.comparison.data.datasets[0].data = compData;
+        charts.comparison.data.datasets[0].label = compLabel;
+        charts.comparison.update();
+
+        // Actualizar Gráficos de Estado
+        ['Colima', 'Edomex', 'Michoacan', 'Queretaro'].forEach(state => {
+            let stateData;
+            let chartType = 'bar';
+            if(module === 'all'){
+                 stateData = {
+                    labels: ['Módulo 1', 'Módulo 2', 'Módulo 3'],
+                    datasets: [
+                        { label: 'Propietarios', data: Object.values(seminarData[state].modulos).map(m => m.P), backgroundColor: '#D9002C', stack: 'Stack 0' },
+                        { label: 'Suplentes', data: Object.values(seminarData[state].modulos).map(m => m.S), backgroundColor: '#404041', stack: 'Stack 1' }
+                    ]
+                };
+            } else {
+                chartType = 'pie';
+                stateData = {
+                    labels: ['Propietarios', 'Suplentes'],
+                    datasets: [{
+                        label: `Asistencia ${module}`,
+                        data: [seminarData[state].modulos[module].P, seminarData[state].modulos[module].S],
+                        backgroundColor: ['#D9002C', '#404041']
+                    }]
+                }
+            }
+
+            if(charts[state].config.type !== chartType){
+                 charts[state].destroy();
+                 charts[state] = createChart(state.toLowerCase() + 'Chart', chartType, stateData, { plugins: { legend: { display: true } } });
+            } else {
+                charts[state].data = stateData;
+                charts[state].update();
+            }
+        });
+    }
+
+    function createChart(ctx, type, data, options = {}) {
+        const defaultOptions = {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: type === 'bar' ? { y: { beginAtZero: true, max: 100 } } : {}
+        };
+        return new Chart(document.getElementById(ctx), { type, data, options: { ...defaultOptions, ...options } });
+    }
+
+    // Initial Chart Creation
+    charts.comparison = createChart('statesComparisonChart', 'bar', {
+        labels: ['Colima', 'Edo. México', 'Michoacán', 'Querétaro'],
+        datasets: [{}]
+    });
+    
+    charts.Colima = createChart('colimaChart', 'bar', {});
+    charts.Edomex = createChart('edomexChart', 'bar', {});
+    charts.Michoacan = createChart('michoacanChart', 'bar', {});
+    charts.Queretaro = createChart('queretaroChart', 'bar', {});
+    
+    moduleFilter.addEventListener('change', updateDashboard);
+
+    // Initial Load
+    updateDashboard();
+});
+</script>
+
+</body>
+</html>
